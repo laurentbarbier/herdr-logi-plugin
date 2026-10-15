@@ -26,8 +26,11 @@ pluginFolderMac: .
 
 # The MX Keypad is the MX Creative Keypad hardware (USB 046d:c354) relaunched
 # for developers; the Plugin Service knows it as MxCreativeKeypad.
+# LoupedeckCtFamily covers the Loupedeck CT, Live and Live S, and the Razer
+# Stream Controller. Only tested on Live S so far.
 supportedDevices:
     - MxCreativeKeypad
+    - LoupedeckCtFamily
 
 pluginCapabilities:
 
