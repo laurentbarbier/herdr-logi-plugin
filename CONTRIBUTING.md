@@ -78,13 +78,16 @@ docs/                    how live key faces work from a Node plugin, README imag
 
 ## README images
 
-`npm run deck` draws the README pictures with the plugin's own ring renderer,
-so they cannot drift from the key faces the device gets. The faces go behind
+`npm run deck` draws the demo keypad and tile-state pictures with the plugin's
+own ring renderer, so they cannot drift from the key faces the device gets. The
+faces go behind
 `assets/keypad-frame.png`, whose key windows are transparent; the windows are
 found in its alpha channel, so replacing the frame moves the faces with it.
 `npm run deck -- --live` draws the herdr session running right now instead of
 the demo one. It needs an SVG rasteriser (`brew install librsvg`) and writes
 the SVG instead of the PNG if none is installed.
+`docs/images/tabs-keypad.png` is a separate screenshot of the Tabs actions on
+the device.
 
 ## Releases
 
