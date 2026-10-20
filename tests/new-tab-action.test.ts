@@ -62,6 +62,19 @@ test('Tabs actions keep their existing IDs and show the target workspace', () =>
   assert.equal(action.label, '+ tab Space 3');
 });
 
+test('New-tab keys carry face data: tab number, project and a + tab marker', () => {
+  const action = new NewTabAction(3);
+  action.update({ ...EMPTY_SNAPSHOT, workspaces: new Map([[3, {
+    workspace_id: 'w3', active_tab_id: 'w3:t1', number: 3,
+    label: 'my-project', agent_status: 'idle',
+  }]]) });
+  assert.deepEqual(action.face, { tab: 3, project: 'my-project', session: '+ tab' });
+  assert.equal(action.status, 'idle');
+  action.update(EMPTY_SNAPSHOT);
+  assert.deepEqual(action.face, { tab: 3, project: '', session: '' });
+  assert.equal(action.status, 'none');
+});
+
 test('a press creates only a focused, auto-numbered shell tab even with an agent in config', async () => {
   writeFileSync(configPath, JSON.stringify({ newSessionAgent: 'codex' }));
   const calls: { method: string; params: Record<string, unknown> }[] = [];

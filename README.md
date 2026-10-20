@@ -5,9 +5,14 @@ the MX Keypad. Press a key to jump to one.
 
 <p align="center">
   <img src="docs/images/keypad.png" width="420"
-   alt="The keypad: fix-login waiting on you, refactor-auth and add-tests
-   working, migrate-db finished, review-pr idle, and three empty slots">
+   alt="The keypad: numbered keys with a state ring and a per-project colour
+   band: fix-login waiting on you, refactor-auth and add-tests working,
+   migrate-db finished, review-pr idle, and three empty slots">
 </p>
+
+Each key shows the workspace number inside the state ring and the project name
+on a band whose colour is derived from the name, so the same project always has
+the same colour.
 
 ## Requirements
 
