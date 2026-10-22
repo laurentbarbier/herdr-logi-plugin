@@ -101,4 +101,29 @@ public class TerminalTests
             Terminal.InstalledBundle(Installed("/System/Applications/Utilities/Terminal.app"), home));
         Assert.Null(Terminal.InstalledBundle(_ => false, home));
     }
+
+    // Stands in for `ps`, counting runs and holding each one open long enough
+    // for the other callers to arrive.
+    private sealed class SlowTerminal : Terminal
+    {
+        private int runs;
+
+        public int Runs => runs;
+
+        protected override async Task<string> RunAsync(string command, params string[] args)
+        {
+            Interlocked.Increment(ref runs);
+            await Task.Delay(50);
+            return "1 0 /sbin/launchd\n10 1 /Applications/Ghostty.app/Contents/MacOS/ghostty\n11 10 herdr\n";
+        }
+    }
+
+    [Fact]
+    public async Task OverlappingDetectionsShareOnePsRun()
+    {
+        var terminal = new SlowTerminal();
+        var bundles = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Task.Run(terminal.DetectBundleAsync)));
+        Assert.All(bundles, bundle => Assert.Equal("/Applications/Ghostty.app", bundle));
+        Assert.Equal(1, terminal.Runs);
+    }
 }

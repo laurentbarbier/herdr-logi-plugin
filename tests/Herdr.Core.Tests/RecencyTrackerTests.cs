@@ -46,4 +46,19 @@ public class RecencyTrackerTests
         tracker.Rank([A("w2:p1")]);
         Assert.Equal(["w1:p1", "w2:p1"], Ids(tracker.Rank([A("w1:p1"), A("w2:p1")])));
     }
+
+    // The poll loop and a Space key press both rank snapshots, on different threads.
+    [Fact]
+    public void RankingFromSeveralThreadsAtOnceIsSafe()
+    {
+        var tracker = new RecencyTracker();
+        string[] statuses = ["idle", "working", "blocked", "done"];
+        Parallel.For(0, 2000, i =>
+        {
+            // Panes come and go and change status, so every call adds, updates and removes.
+            var agents = Enumerable.Range(0, 1 + i % 20).Select(n => A($"w{n}:p{i % 3}", statuses[(i + n) % 4])).ToList();
+            var ranked = tracker.Rank(agents);
+            Assert.Equal(agents.Count, ranked.Count);
+        });
+    }
 }

@@ -43,6 +43,9 @@ public class Terminal
         ["iTerm", "Ghostty", "WezTerm", "kitty", "Warp", "Alacritty", "Rio", "Hyper", "Tabby", "Terminal"];
 
     private static readonly TimeSpan DetectCache = TimeSpan.FromSeconds(30);
+    // Activation runs outside the press queue, so overlapping presses can detect
+    // at once; the gate makes them share one `ps` run and one cache entry.
+    private readonly SemaphoreSlim detectGate = new(1, 1);
     private (string? Bundle, DateTime At)? detected;
 
     // Parses `ps -axo pid=,ppid=,comm=` output.
@@ -118,20 +121,28 @@ public class Terminal
     // known terminal that is running, then a known terminal that is installed.
     public async Task<string?> DetectBundleAsync()
     {
-        if (detected is { } cached && DateTime.UtcNow - cached.At < DetectCache) return cached.Bundle;
-        string? bundle;
+        await detectGate.WaitAsync();
         try
         {
-            var processes = ParseProcessTable(await RunAsync("/bin/ps", "-axo", "pid=,ppid=,comm="));
-            bundle = BundleFromProcessTable(processes) ?? RunningBundleFromProcessTable(processes);
+            if (detected is { } cached && DateTime.UtcNow - cached.At < DetectCache) return cached.Bundle;
+            string? bundle;
+            try
+            {
+                var processes = ParseProcessTable(await RunAsync("/bin/ps", "-axo", "pid=,ppid=,comm="));
+                bundle = BundleFromProcessTable(processes) ?? RunningBundleFromProcessTable(processes);
+            }
+            catch (Exception)
+            {
+                bundle = null;
+            }
+            bundle ??= InstalledBundle();
+            detected = (bundle, DateTime.UtcNow);
+            return bundle;
         }
-        catch (Exception)
+        finally
         {
-            bundle = null;
+            detectGate.Release();
         }
-        bundle ??= InstalledBundle();
-        detected = (bundle, DateTime.UtcNow);
-        return bundle;
     }
 
     // Never throws: a terminal that cannot be raised must not stop the focus
