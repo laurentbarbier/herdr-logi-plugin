@@ -8,6 +8,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.2.0] - 2026-10-22
 
+### Added
+
+- Loupedeck CT family support (`LoupedeckCtFamily`): Loupedeck CT, Live and
+  Live S, and the Razer Stream Controller. Only tested on the Live S so far.
+
 ### Changed
 
 - Rewritten in C# on Logitech's .NET plugin SDK; the plugin no longer runs on
