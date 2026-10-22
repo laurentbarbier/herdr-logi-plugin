@@ -8,21 +8,29 @@ name: Herdr
 displayName: Herdr Agents
 description: Live status tiles and one-press focus for herdr workspaces and coding agents on the MX Keypad.
 
-# Keep in sync with package.json (checked by `npm run check:version`).
-version: 0.1.2
+# The plugin's only version number: the build reads it from here.
+version: 0.2.0
 
 author: Niklas Berglund
 copyright: Copyright © 2026 Niklas Berglund
-minimumLoupedeckVersion: 6.1
+# LogiPluginApi 6.4 targets .NET 10, which the Plugin Service runs from 6.4.
+minimumLoupedeckVersion: 6.4
 
-pluginType: remote
-pluginRuntime: nodejs
-entryPoint: index.mjs
+pluginFileName: HerdrPlugin.dll
 
 # macOS only: the plugin raises the terminal with `open -a` and reads the
-# herdr socket under ~/.config. Omitting pluginFolderWin marks Windows as
-# unsupported.
-pluginFolderMac: .
+# herdr socket under ~/.config. The marketplace reads the commented-out
+# Windows folder line below as "Windows unsupported" (confirmed by Logitech);
+# without it the plugin is listed for Windows too. Keep it verbatim, and don't
+# name that key anywhere else in this file.
+
+# Location of plugin files on Windows (relative to the plugin base directory).
+# This parameter is required to support Windows.
+#pluginFolderWin: bin
+
+# Location of plugin files on macOS (relative to the plugin base directory).
+# This parameter is required to support Mac.
+pluginFolderMac: bin
 
 # The MX Keypad is the MX Creative Keypad hardware (USB 046d:c354) relaunched
 # for developers; the Plugin Service knows it as MxCreativeKeypad.

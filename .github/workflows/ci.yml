@@ -15,21 +15,17 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [22, 24]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          node-version: ${{ matrix.node }}
-          cache: npm
-      - run: npm ci
-      - run: npm run check
-      - run: npm run build:pack
+          dotnet-version: 10.0.x
+      - run: dotnet test Herdr.slnx
+      - run: dotnet build Herdr.slnx -c Release
+      - run: dotnet tool install --global LogiPluginTool --version 6.4.2.3599
+      - run: logiplugintool pack build/Release Herdr.lplug4
+      - run: logiplugintool verify Herdr.lplug4
       - uses: actions/upload-artifact@v4
-        if: matrix.node == 22
         with:
           name: Herdr-lplug4
           path: '*.lplug4'

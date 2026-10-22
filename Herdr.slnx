@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Herdr.Core/Herdr.Core.csproj" />
+    <Project Path="src/HerdrPlugin/HerdrPlugin.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Herdr.Core.Tests/Herdr.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Images/Images.csproj" />
+  </Folder>
+</Solution>

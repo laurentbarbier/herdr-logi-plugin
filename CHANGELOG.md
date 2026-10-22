@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Rewritten in C# on Logitech's .NET plugin SDK; the plugin no longer runs on
+  Node.js. Keys, rings, labels and configuration behave as before.
+- Requires Logi Plugin Service 6.4 or newer.
+- If Options+ shows your Herdr keys as empty after updating, drag the actions
+  onto them again.
+
 ## [0.1.2] - 2026-09-26
 
 ### Changed

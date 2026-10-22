@@ -27,7 +27,7 @@ In both cases the keypad shows the local server's state, usually nothing.
   tunnel rather than trusting the socket file's existence.
 - Terminal activation keeps working. The local `herdr --remote` client is a
   local process inside a local terminal, which is what the process-tree
-  detection in `src/herdr.ts` finds. Focus requests go to the remote server
+  detection in `src/Herdr.Core/Terminal.cs` finds. Focus requests go to the remote server
   over the forwarded socket, which is the desired behaviour.
 
 ## Tier 1: manual tunnel, configurable socket
@@ -37,15 +37,15 @@ Small. Lets a user who runs their own SSH tunnel point the plugin at it.
 - Add `socketPath` to `~/.config/herdr-logi-plugin/config.json`. Absent means
   the default local socket. `HERDR_SOCKET_PATH` remains a development
   override.
-- `src/herdr.ts` currently fixes `SOCKET_PATH` at module load. Resolve it per
-  request instead, reading the config the same way `terminalApp` is read, so
+- `HerdrClient` currently fixes its socket path when it is created. Resolve it
+  per request instead, reading the config the same way `terminalApp` is read, so
   edits apply without a plugin reload.
 - The offline ring already covers a tunnel that is down.
 - README: a "Remote herdr" section with the `ssh -L` command, a note that
   the tunnel must be started by the user (for example as a launchd agent),
   and the caveat that `-L` with a Unix socket fails if the local socket file
   already exists (`StreamLocalBindUnlink yes` in `~/.ssh/config` fixes it).
-- Tests: `loadConfig` accepts `socketPath`; the request tests already run
+- Tests: `Config.Load` accepts `socketPath`; the request tests already run
   against an arbitrary socket path.
 
 Estimated effort: an hour including docs.
