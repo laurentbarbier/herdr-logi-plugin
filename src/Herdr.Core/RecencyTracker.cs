@@ -20,22 +20,25 @@ public sealed class RecencyTracker
 
     public IReadOnlyList<Agent> Rank(IReadOnlyList<Agent> agents)
     {
-        foreach (var agent in agents)
+        lock (seen)
         {
-            if (!seen.TryGetValue(agent.PaneId, out var entry))
+            foreach (var agent in agents)
             {
-                seen[agent.PaneId] = new Entry(agent.AgentStatus, bootstrapped ? ++activitySeq : --firstSeenSeq);
+                if (!seen.TryGetValue(agent.PaneId, out var entry))
+                {
+                    seen[agent.PaneId] = new Entry(agent.AgentStatus, bootstrapped ? ++activitySeq : --firstSeenSeq);
+                }
+                else if (entry.Status != agent.AgentStatus)
+                {
+                    entry.Status = agent.AgentStatus;
+                    entry.Seq = ++activitySeq;
+                }
             }
-            else if (entry.Status != agent.AgentStatus)
-            {
-                entry.Status = agent.AgentStatus;
-                entry.Seq = ++activitySeq;
-            }
+            var live = agents.Select(a => a.PaneId).ToHashSet();
+            foreach (var paneId in seen.Keys.Where(id => !live.Contains(id)).ToList()) seen.Remove(paneId);
+            bootstrapped = true;
+            // OrderByDescending is stable, so equal sequence numbers keep their order.
+            return agents.OrderByDescending(a => seen.TryGetValue(a.PaneId, out var e) ? e.Seq : 0).ToList();
         }
-        var live = agents.Select(a => a.PaneId).ToHashSet();
-        foreach (var paneId in seen.Keys.Where(id => !live.Contains(id)).ToList()) seen.Remove(paneId);
-        bootstrapped = true;
-        // OrderByDescending is stable, so equal sequence numbers keep their order.
-        return agents.OrderByDescending(a => seen.TryGetValue(a.PaneId, out var e) ? e.Seq : 0).ToList();
     }
 }
