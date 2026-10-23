@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Everything that does not need the Logi Plugin API, so the tests and the
+       image tools can use it without the Plugin Service. -->
+  <PropertyGroup>
+    <RootNamespace>Herdr</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Herdr.Core.Tests" />
+  </ItemGroup>
+
+</Project>

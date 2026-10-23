@@ -13,7 +13,7 @@ the MX Keypad. Press a key to jump to one.
 
 - macOS
 - [herdr](https://herdr.dev) 0.8.2 or newer, running locally
-- Logi Options+ with Logi Plugin Service 6.1 or newer
+- Logi Options+ with Logi Plugin Service 6.4 or newer
 - Logitech MX Keypad (or Loupedeck)
 
 ## Install

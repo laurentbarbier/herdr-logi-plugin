@@ -1,5 +1,6 @@
-node_modules/
-dist/
+bin/
+obj/
+build/
 *.lplug4
 .DS_Store
 .idea/
