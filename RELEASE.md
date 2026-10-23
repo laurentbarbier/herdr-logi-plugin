@@ -21,9 +21,9 @@ vulnerability was announced in October 2026 and asked for a C# version.
 
 - [x] Port to C# on `LogiPluginApi` 6.4.2.3567; remove Node.js from the repo.
 - [x] Loads in the Plugin Service and drives the MX Keypad from a dev link.
-- [ ] Full hardware pass: all three groups render, ring colours, offline ring,
+- [x] Full hardware pass: all three groups render, ring colours, offline ring,
       labels, pane cycling, terminal detection and the `terminalApp` override.
-- [ ] Check that keys assigned under 0.1.x keep working after updating from an
+- [x] Check that keys assigned under 0.1.x keep working after updating from an
       installed 0.1.2 package (the action names are unchanged).
 - [ ] Reply to Logitech's email when resubmitting: built on the C# SDK, no
       Node.js runtime.
