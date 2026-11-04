@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Herdr.Core.Tests" />
     <ProjectReference Include="../../src/Herdr.Core/Herdr.Core.csproj" />
   </ItemGroup>
 

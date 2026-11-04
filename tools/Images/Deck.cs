@@ -38,7 +38,12 @@ static class Deck
     // `Project` is null for the old-style ring-plus-label approximation (used
     // by the state legend strip) and non-null (possibly empty) for the new
     // composite key face, drawn by the same FacePng.Draw() the device uses.
-    private sealed record Key(string Status, string Label, int? Tab = null, string? Project = null);
+    internal sealed record Key(
+        string Status,
+        string Label,
+        int? Tab = null,
+        int? TabNumber = null,
+        string? Project = null);
 
     private sealed record Window(int X, int Y, int Width, int Height);
 
@@ -46,15 +51,15 @@ static class Deck
     // agents at work, one turn just finished, and three slots still empty.
     private static readonly Key[] DemoDeck =
     [
-        new("blocked", "fix-login", Tab: 1, Project: "fix-login"),
-        new("working", "refactor-auth", Tab: 2, Project: "refactor-auth"),
-        new("done", "migrate-db", Tab: 3, Project: "migrate-db"),
-        new("working", "add-tests", Tab: 4, Project: "add-tests"),
-        new("idle", "review-pr", Tab: 5, Project: "review-pr"),
-        new("unknown", "bench", Tab: 6, Project: "bench"),
-        new("none", "Space 7", Tab: 7, Project: ""),
-        new("none", "Space 8", Tab: 8, Project: ""),
-        new("none", "Space 9", Tab: 9, Project: ""),
+        new("blocked", "fix-login", Tab: 1, TabNumber: 1, Project: "fix-login"),
+        new("working", "refactor-auth", Tab: 2, TabNumber: 2, Project: "refactor-auth"),
+        new("done", "migrate-db", Tab: 3, TabNumber: 3, Project: "migrate-db"),
+        new("working", "add-tests", Tab: 4, TabNumber: 4, Project: "add-tests"),
+        new("idle", "review-pr", Tab: 5, TabNumber: 5, Project: "review-pr"),
+        new("unknown", "bench", Tab: 6, TabNumber: 6, Project: "bench"),
+        new("none", "Space 7", Tab: 7, TabNumber: 7, Project: ""),
+        new("none", "Space 8", Tab: 8, TabNumber: 8, Project: ""),
+        new("none", "Space 9", Tab: 9, TabNumber: 9, Project: ""),
     ];
 
     private static readonly Key[] States =
@@ -89,18 +94,19 @@ static class Deck
 
     // The new composite key face (ring, tab number/superscript and project
     // band), drawn by FacePng.Draw() — the same code the device uses — and
-    // cached per distinct (status, tab, project) combination.
-    private static readonly Dictionary<string, string> Faces = [];
+    // cached per distinct (status, tab, tab position, project) combination.
+    private static readonly Dictionary<(string Status, int? Tab, int? TabNumber, string? Project), string> Faces = [];
 
-    private static string FaceImage(Key key)
+    internal static string FaceImage(Key key)
     {
-        var cacheKey = $"{key.Status}|{key.Tab}|{key.Project}";
+        var cacheKey = (key.Status, key.Tab, key.TabNumber, key.Project);
         if (!Faces.TryGetValue(cacheKey, out var cached))
         {
             var (rgb, style) = TileFaces.StyleFor(key.Status);
             var spec = new FaceSpec
             {
                 Tab = key.Tab,
+                TabNumber = key.Tab is null ? null : key.TabNumber,
                 Project = key.Project ?? "",
                 RingRgb = rgb,
                 RingStyle = style,
@@ -235,30 +241,30 @@ static class Deck
     // One key face, `scale` pixels per design unit, with its top-left corner at
     // (x, y). An empty slot keeps the space its label would occupy so the rows
     // stay aligned, which is what the device does too.
-    private static string KeyFace(Key key, double x, double y, double scale, bool rounded = false)
+    internal static string KeyFace(Key key, double x, double y, double scale, bool rounded = false)
     {
         var size = TileSize * scale;
-        if (key.Project is not null)
-        {
-            // A full 80x80 key face, drawn by the same FacePng.Draw() the
-            // device uses (tab, state ring and the project's own band
-            // colour), not approximated.
-            var facePixels = (int)Math.Round(size);
-            return $"""
-
-                  <g transform="translate({N(x)},{N(y)})">
-                    <image x="0" y="0" width="{facePixels}" height="{facePixels}" href="{DataUri(FaceImage(key))}"/>
-                  </g>
-                """;
-        }
         var ringPixels = (int)Math.Round(TileFaces.ImageSize * scale);
-        var text = TileFaces.LabelText(key.Label).Trim('​', ' ');
-        var plate = rounded
-            ? $"""<rect width="{N(size)}" height="{N(size)}" rx="{N(16 * scale)}" fill="{Face}" stroke="{Bezel}" stroke-width="{N(scale)}"/>"""
-            : $"""<rect width="{N(size)}" height="{N(size)}" fill="{Face}"/>""";
+        var text = key.Project is null
+            ? TileFaces.LabelText(key.Label).Trim('​', ' ')
+            : TileFaces.ServiceText(key.Label).Trim('​', ' ');
         var label = text.Length == 0
             ? ""
             : $"""<text x="{N(size / 2)}" y="{N(LabelBaseline * scale)}" text-anchor="middle" font-family="{Font}" font-size="{N(LabelSize * scale)}" fill="{LabelColour}">{WebUtility.HtmlEncode(text)}</text>""";
+        if (key.Project is not null)
+        {
+            var facePixels = ringPixels;
+            return $"""
+
+                  <g transform="translate({N(x)},{N(y)})">
+                    <image x="{N((size - facePixels) / 2)}" y="{N(RingTop * scale)}" width="{facePixels}" height="{facePixels}" href="{DataUri(FaceImage(key))}"/>
+                    {label}
+                  </g>
+                """;
+        }
+        var plate = rounded
+            ? $"""<rect width="{N(size)}" height="{N(size)}" rx="{N(16 * scale)}" fill="{Face}" stroke="{Bezel}" stroke-width="{N(scale)}"/>"""
+            : $"""<rect width="{N(size)}" height="{N(size)}" fill="{Face}"/>""";
         return $"""
 
               <g transform="translate({N(x)},{N(y)})">
@@ -353,6 +359,12 @@ static class Deck
     // picture of a real session goes through exactly the code path the device
     // does. Without herdr running every tile would be offline, which says nothing,
     // so that is an error rather than a picture.
+    internal static Key KeyFromTile(Tile tile)
+    {
+        var face = tile.Face;
+        return new Key(tile.Status, tile.ServiceText, face.Tab, face.TabNumber, face.Project);
+    }
+
     private static async Task<Key[]?> LiveDeckAsync()
     {
         var client = new HerdrClient();
@@ -370,7 +382,7 @@ static class Deck
         {
             var tile = new SpaceTile(client, slot);
             tile.Update(snapshot);
-            return new Key(tile.Status, tile.Label, tile.Face.Tab, tile.Face.Project);
+            return KeyFromTile(tile);
         }).ToArray();
     }
 
