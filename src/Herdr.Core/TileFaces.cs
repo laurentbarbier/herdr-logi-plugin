@@ -95,16 +95,22 @@ public static class TileFaces
         return cleaned.Length == 0 ? Blank : LabelText(cleaned, SessionTextMaxChars);
     }
 
-    private static readonly ConcurrentDictionary<string, byte[]> FaceCache = new();
+    private static readonly ConcurrentDictionary<(string Status, Face Face), byte[]> FaceCache = new();
     private const int FaceCacheMax = 256;
 
     /// <summary>The key face (tab, project band and state ring) for a tile.</summary>
     public static byte[] FaceFor(Tile tile)
     {
-        var key = tile.FaceKey;
-        if (FaceCache.TryGetValue(key, out var cached)) return cached;
-        var (rgb, style) = StyleFor(tile.Status);
+        var status = tile.Status;
         var face = tile.Face;
+        return FaceFor(status, face);
+    }
+
+    internal static byte[] FaceFor(string status, Face face)
+    {
+        var key = (status, face);
+        if (FaceCache.TryGetValue(key, out var cached)) return cached;
+        var (rgb, style) = StyleFor(status);
         var spec = new FaceSpec
         {
             Tab = face.Tab,

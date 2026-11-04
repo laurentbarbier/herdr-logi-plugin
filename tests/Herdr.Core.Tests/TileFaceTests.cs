@@ -108,6 +108,20 @@ public class TileFaceTests
     }
 
     [Fact]
+    public void CompositeFaceCacheUsesTheCapturedStatusAndFace()
+    {
+        var face = new Face { Tab = 1, TabNumber = 2, Project = "herdr", Session = "Fix login" };
+
+        var working = TileFaces.FaceFor("working", face);
+        var blocked = TileFaces.FaceFor("blocked", face);
+        var nextTab = TileFaces.FaceFor("working", face with { TabNumber = 3 });
+
+        Assert.NotEqual(working, blocked);
+        Assert.NotEqual(working, nextTab);
+        Assert.Equal(working, TileFaces.FaceFor("working", face));
+    }
+
+    [Fact]
     public void ClearingToAnEmptySnapshotResetsTheFace()
     {
         var space = new SpaceTile(Client, 2);
